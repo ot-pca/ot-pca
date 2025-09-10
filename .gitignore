@@ -1,0 +1,7 @@
+logs/
+output/
+data_input/
+plots/
+templates/
+src/__pycache__/
+
