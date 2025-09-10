@@ -26,4 +26,4 @@ main folder/
 
 The `hqc128/clean` directory contains the standard PQClean implementation of hqc-128 from [PQClean](https://github.com/PQClean/PQClean), with a single modification made by the paper's authors to facilitate their analysis.
 
-A custom function, `reed_muller_decode_one_block`, was added to the `hqc128/clean/reed_muller.c` file. Its purpose is to retrieve the decoding output for a single Reed-Muller block, which is used for the offline error pattern finding and template construction of the FD attack.
+A custom function, `reed_muller_decode_one_block`, was added to the `hqc128/clean/reed_muller.c` file. Its purpose is to retrieve the decoding output for a single Reed-Muller block, which is used for the offline error pattern finding and template construction of the attack.
