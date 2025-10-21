@@ -34,6 +34,7 @@ class ErrorPatternFinder:
         return shannon_entropy, results_distribution
 
     def write_results_to_csv(self, filepath, vectors, entropy):
+        os.makedirs(os.path.dirname(filepath) or ".", exist_ok=True)
         lockfile = filepath + '.lock'
         file_exists = os.path.exists(filepath)
 
