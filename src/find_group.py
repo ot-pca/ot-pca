@@ -4,6 +4,7 @@ import pandas as pd
 import random
 import logging
 import sys
+import os
 from util import setup_logging
 
 def hamming_distance(v1, v2):
@@ -76,6 +77,7 @@ def main(scheme, num_vec):
     # save the group to npy
     best_vectors_array = np.array(best_vectors)
     output_path = f'data_input/best_vectors_{scheme}_{num_vec}.npy'
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
     np.save(output_path, best_vectors_array)
     logging.info(f"Saved the best vectors to {output_path}")
 

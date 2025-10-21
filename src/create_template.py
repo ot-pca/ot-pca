@@ -1,5 +1,6 @@
 import numpy as np
 import sys
+import os
 import pickle
 from util import sample_vector_from_scheme, rm_decoder_result_w_noise, load_config, load_lib, load_rm_decoder
 
@@ -34,6 +35,7 @@ def create_template(scheme, error_patterns, n2, rm_decoder, rho, lib):
 
 def save_template_to_pickle(probability_template, scheme, rho, num_vec):
     filename = f'./templates/{scheme}_{num_vec}_rho={rho}.pkl'
+    os.makedirs(os.path.dirname(filename), exist_ok=True)
     with open(filename, 'wb') as file:
         pickle.dump(probability_template, file)
 
