@@ -5,6 +5,8 @@ set -m
 OUTPUT_FILE=./output/error_patterns_hqc128.csv
 ERROR_LOG=./logs/error_log.txt
 
+mkdir -p "$(dirname "$OUTPUT_FILE")" "$(dirname "$ERROR_LOG")"
+
 # Clear the error log file
 > "$ERROR_LOG"
 
@@ -33,7 +35,7 @@ run_task() {
     core_id=$1  # Get core id (just for tracking)
     
     # Loop x times independently
-    for iteration in {1..2}; do
+    for iteration in {1..5}; do
         echo "Core $core_id: Starting iteration $iteration..."
 
         # Redirect only stderr to the error log
