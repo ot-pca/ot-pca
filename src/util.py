@@ -5,6 +5,7 @@ import random
 import matplotlib
 import json
 import math
+import os
 
 
 def load_config(scheme):
@@ -19,6 +20,7 @@ def setup_logging(script,scheme):
     DATE_FORMAT = '%m/%d/%Y %H:%M:%S'
     for handler in logging.root.handlers[:]:
         logging.root.removeHandler(handler)
+    os.makedirs("logs", exist_ok=True)
     # Set up new logging configuration
     logging.basicConfig(level=logging.DEBUG, format=LOG_FORMAT, datefmt=DATE_FORMAT, handlers=[
         logging.FileHandler(f'./logs/{script}_{scheme}.log'),
@@ -39,44 +41,16 @@ def load_rm_decoder(lib):
     rm_decode.restype = None
     return rm_decode
 
-
-def load8_arr(in8): # uint8 to uint64
-    inlen = len(in8)
-    outlen = (inlen + 7) // 8  # Calculate needed length for uint64 array
-    out64 = (ctypes.c_uint64 * outlen)()  # Create the output array
-    
-    index_in = 0
-    index_out = 0
-    
-    # First copy by 8 bytes where possible, treating as big-endian
-    while index_out < outlen and index_in + 8 <= inlen:
-        # Convert bytes to a uint64 using big-endian, mimicking the load8 function
-        out64[index_out] = int.from_bytes(in8[index_in:index_in + 8], 'big')
-        index_in += 8
-        index_out += 1
-
-    # Handle the last few bytes if necessary
-    if index_in < inlen:
-        last_val = 0
-        for i in range(inlen - index_in):
-            # Shift and append each byte
-            last_val <<= 8
-            last_val |= in8[index_in + i]
-        # Store the constructed last value in big-endian fashion
-        out64[index_out] = last_val
-
-    return out64
-
-def bit_array_to_uint64(lib,vector,scheme):
-   # Convert binary array to bytes
+def bit_array_to_uint64(lib, vector, scheme):
+    # Convert binary array (LSB-first per byte) to bytes
     byte_arr = bytearray()
-    # int(len(vector)/8) gives the length of the correspondign byte array
-    len_byte = math.ceil(len(vector)/8)
+    len_byte = math.ceil(len(vector) / 8)
     for i in range(0, len_byte * 8, 8):
-        # Convert each block of 8 binary digits to a byte
+        chunk = vector[i:i + 8]
         byte = 0
-        for bit in vector[i:i+8]:
-            byte = (byte << 1) | bit
+        for bit_index, bit in enumerate(chunk):
+            if bit & 1:
+                byte |= (1 << bit_index)
         byte_arr.append(byte)
     
     n_bytes = (int) (len_byte)
@@ -100,45 +74,6 @@ def bit_array_to_uint64(lib,vector,scheme):
     PQCLEAN_CLEAN_load8_arr(uint64_array, len_64, byte_array_uint8, len_byte)
 
     return uint64_array
-
-
-def bit_array_to_uint8(vector,n2): # get a ctypes array of n2/8 bytes representing the binary data.
-    # Ensure the vector is exactly n2 bits
-    if len(vector) != n2:
-        raise ValueError("The binary vector must be of length n2/8.")
-    
-    # Convert binary array to bytes
-    byte_arr = bytearray()
-    for i in range(0, len(vector), 8):
-        # Convert each block of 8 binary digits to a byte
-        byte = 0
-        for bit in vector[i:i+8]:
-            byte = (byte << 1) | bit
-        byte_arr.append(byte)
-    
-    n_bytes = (int) (n2 / 8)
-    # Create a ctypes array of type unsigned char and length n2/8
-    ctypes_arr = (ctypes.c_ubyte * n_bytes)(*byte_arr)
-    
-    return ctypes_arr
-
-
-def uint64_to_bit(array):     # convert ctypes uint64 array to binary bit array
-    np_uint64_array = np.frombuffer(array, dtype=np.uint64)
-    # View the uint64 array as uint8
-    np_uint8_array = np_uint64_array.view(np.uint8)
-    # Use unpackbits to get the binary representation of each uint8
-    binary_bits_array = np.unpackbits(np_uint8_array)
-    return binary_bits_array
-
-
-def uint8_to_bit(array):  # convert ctypes uint8 array to binary bit array
-    # Create a NumPy array from the ctypes array buffer, dtype is already uint8
-    np_uint8_array = np.frombuffer(array, dtype=np.uint8)
-
-    # Use unpackbits to get the binary representation of each uint8
-    binary_bits_array = np.unpackbits(np_uint8_array)
-    return binary_bits_array
 
 def sample_binary_vector(n2, min_weight, max_weight):
     #Sample a binary random vector of length n2 with Hamming weight between min_weight and max_weight.
